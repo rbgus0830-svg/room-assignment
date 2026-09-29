@@ -1641,7 +1641,7 @@
     </main>
 
     <footer class="footer">
-        A~E호실 사전 배정 정보는 현재 브라우저에 저장됩니다.
+        901·902·903·917·918호 사전 배정 정보는 현재 브라우저에 저장됩니다.
     </footer>
 </div>
 
@@ -1787,7 +1787,7 @@
 
             <div class="admin-notice">
                 학생이 고르는 카드는 배정 결과를 공개하기 위한 인터페이스입니다.
-                실제 결과는 아래 사전 배정표에 따라 A~E호실로 표시됩니다.
+                실제 결과는 아래 사전 배정표에 따라 901·902·903·917·918호로 표시됩니다.
             </div>
 
             <div class="table-wrap">
@@ -1839,58 +1839,71 @@
      * 호실 기본 데이터
      * 파일 전체에서 DEFAULT_ROOMS는 한 번만 선언합니다.
      */
+
+     /*
+ * 내부 객실 ID와 실제 객실 번호의 정확한 대응표
+ * 학생 배정용 roomA~roomE ID는 변경하지 않습니다.
+ */
+const ROOM_NUMBER_BY_ID = {
+    roomA: "903호",
+    roomB: "901호",
+    roomC: "902호",
+    roomD: "917호",
+    roomE: "918호"
+};
+
     const DEFAULT_ROOMS = [
-        {
-            id: "roomA",
-            number: "A호실",
-            name: "3인실",
-            capacity: 3,
-            gender: "남",
-            badge: "남학생 호실",
-            description: "남학생 3명이 함께 사용하는 호실입니다.",
-            themeColor: "#0ea5e9"
-        },
-        {
-            id: "roomB",
-            number: "B호실",
-            name: "4인실",
-            capacity: 4,
-            gender: "남",
-            badge: "남학생 호실",
-            description: "남학생 4명이 함께 사용하는 호실입니다.",
-            themeColor: "#3b82f6"
-        },
-        {
-            id: "roomC",
-            number: "C호실",
-            name: "4인실",
-            capacity: 4,
-            gender: "남",
-            badge: "남학생 호실",
-            description: "남학생 4명이 함께 사용하는 호실입니다.",
-            themeColor: "#6366f1"
-        },
-        {
-            id: "roomD",
-            number: "D호실",
-            name: "4인실",
-            capacity: 4,
-            gender: "여",
-            badge: "여학생 호실",
-            description: "여학생 4명이 함께 사용하는 호실입니다.",
-            themeColor: "#ec4899"
-        },
-        {
-            id: "roomE",
-            number: "E호실",
-            name: "4인실",
-            capacity: 4,
-            gender: "여",
-            badge: "여학생 호실",
-            description: "여학생 4명이 함께 사용하는 호실입니다.",
-            themeColor: "#f59e0b"
-        }
-    ];
+    {
+        id: "roomA",
+        number: ROOM_NUMBER_BY_ID.roomA,
+        name: "3인실",
+        capacity: 3,
+        gender: "남",
+        badge: "남학생 호실",
+        description: "남학생 3명이 함께 사용하는 903호입니다.",
+        themeColor: "#0ea5e9"
+    },
+    {
+        id: "roomB",
+        number: ROOM_NUMBER_BY_ID.roomB,
+        name: "4인실",
+        capacity: 4,
+        gender: "남",
+        badge: "남학생 호실",
+        description: "남학생 4명이 함께 사용하는 901호입니다.",
+        themeColor: "#3b82f6"
+    },
+    {
+        id: "roomC",
+        number: ROOM_NUMBER_BY_ID.roomC,
+        name: "4인실",
+        capacity: 4,
+        gender: "남",
+        badge: "남학생 호실",
+        description: "남학생 4명이 함께 사용하는 902호입니다.",
+        themeColor: "#6366f1"
+    },
+    {
+        id: "roomD",
+        number: ROOM_NUMBER_BY_ID.roomD,
+        name: "4인실",
+        capacity: 4,
+        gender: "여",
+        badge: "여학생 호실",
+        description: "여학생 4명이 함께 사용하는 917호입니다.",
+        themeColor: "#ec4899"
+    },
+    {
+        id: "roomE",
+        number: ROOM_NUMBER_BY_ID.roomE,
+        name: "4인실",
+        capacity: 4,
+        gender: "여",
+        badge: "여학생 호실",
+        description: "여학생 4명이 함께 사용하는 918호입니다.",
+        themeColor: "#f59e0b"
+    }
+];
 
     /*
      * 이미지의 배정표를 그대로 반영한 기본 학생 데이터
@@ -2109,6 +2122,18 @@ let toastTimer = null;
                 deepCopy(DEFAULT_STUDENTS)
             );
         }
+
+/*
+ * 기존 localStorage에 A~E호실로 저장된 데이터가 있어도
+ * 내부 ID를 기준으로 새 객실 번호를 정확하게 적용합니다.
+ * 학생 배정 및 카드 선택 기록은 유지됩니다.
+ */
+rooms = rooms.map(room => ({
+    ...room,
+    number:
+        ROOM_NUMBER_BY_ID[room.id] ||
+        room.number
+}));
 
         adminPin =
             localStorage.getItem(STORAGE_KEYS.pin) ||
@@ -3498,7 +3523,7 @@ function startActualAssignmentAfterPreview() {
     function resetAllData() {
     if (
         !window.confirm(
-            "이미지에 있는 A~E호실 최초 사전 배정표로 복원하시겠습니까?\n기존 카드 선택 기록도 모두 삭제됩니다."
+            "최초 사전 배정표로 복원하시겠습니까?\n객실은 903·901·902·917·918호로 복원되며 기존 카드 선택 기록도 모두 삭제됩니다."
         )
     ) {
         return;
@@ -3520,7 +3545,7 @@ function startActualAssignmentAfterPreview() {
     showOnlyScreen("select-screen");
 
     showToast(
-        "A~E호실 최초 사전 배정표로 복원했습니다."
+        "903·901·902·917·918호 최초 사전 배정표로 복원했습니다."
     );
 }
 
@@ -3587,7 +3612,7 @@ function startActualAssignmentAfterPreview() {
 
         link.href = url;
         link.download =
-            "수학여행_A-E호실_방배정표.csv";
+            "수학여행_903·901·902·917·918호_방배정표.csv";
 
         document.body.appendChild(link);
         link.click();
