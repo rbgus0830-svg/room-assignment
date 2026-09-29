@@ -2091,12 +2091,15 @@ let toastTimer = null;
             ...student,
 
             /*
-             * 기존 localStorage 데이터에 출석번호가 없어도
-             * DEFAULT_STUDENTS의 번호를 자동으로 적용합니다.
+             * 출석번호는 DEFAULT_STUDENTS에 정의된
+             * 실제 번호를 최우선으로 적용합니다.
+             *
+             * 기존 localStorage에 잘못된 번호가 저장되어 있어도
+             * 실제 출석번호로 자동 복구됩니다.
              */
             attendanceNo:
-                Number(student.attendanceNo) ||
                 Number(defaultStudent?.attendanceNo) ||
+                Number(student.attendanceNo) ||
                 9999,
 
             assignedRoomId:
@@ -2275,53 +2278,62 @@ rooms = rooms.map(room => ({
     }
 
     function populateStudentSelect() {
-        const select =
-            document.getElementById("student-select");
+    const select =
+        document.getElementById("student-select");
 
-        select.innerHTML =
-            '<option value="">-- 학생 이름을 선택하세요 --</option>';
+    select.innerHTML =
+        '<option value="">-- 학생 이름을 선택하세요 --</option>';
 
-        ["남", "여"].forEach(gender => {
-            const groupStudents =
-    students
-        .filter(
-            student => student.gender === gender
-        )
-        .sort(
-            (studentA, studentB) =>
-                studentA.attendanceNo -
-                studentB.attendanceNo
-        );
+    ["남", "여"].forEach(gender => {
+        const groupStudents = students
+            .filter(
+                student => student.gender === gender
+            )
+            .slice()
+            .sort((studentA, studentB) => {
+                const numberCompare =
+                    Number(studentA.attendanceNo) -
+                    Number(studentB.attendanceNo);
 
-            const group =
-                document.createElement("optgroup");
+                if (numberCompare !== 0) {
+                    return numberCompare;
+                }
 
-            group.label =
-                gender === "남"
-                    ? `남학생 (${groupStudents.length}명)`
-                    : `여학생 (${groupStudents.length}명)`;
-
-            groupStudents.forEach(student => {
-                const option =
-                    document.createElement("option");
-
-                option.value = student.id;
-
-                option.textContent =
-    student.hasDrawn
-        ? `✅ ${student.attendanceNo}번 ${student.name} · 완료`
-        : `${student.attendanceNo}번 ${student.name}`;
-
-                group.appendChild(option);
+                return studentA.name.localeCompare(
+                    studentB.name,
+                    "ko-KR"
+                );
             });
 
-            select.appendChild(group);
+        const group =
+            document.createElement("optgroup");
+
+        group.label =
+            gender === "남"
+                ? `남학생 (${groupStudents.length}명)`
+                : `여학생 (${groupStudents.length}명)`;
+
+        groupStudents.forEach(student => {
+            const option =
+                document.createElement("option");
+
+            option.value = student.id;
+
+            option.textContent =
+                student.hasDrawn
+                    ? `✅ ${student.attendanceNo}번 ${student.name} · 완료`
+                    : `${student.attendanceNo}번 ${student.name}`;
+
+            group.appendChild(option);
         });
 
-        if (selectedStudent) {
-            select.value = selectedStudent.id;
-        }
+        select.appendChild(group);
+    });
+
+    if (selectedStudent) {
+        select.value = selectedStudent.id;
     }
+}
 
     function handleStudentSelect() {
         const studentId =
@@ -3274,14 +3286,32 @@ function startActualAssignmentAfterPreview() {
 
         tbody.innerHTML = "";
 
-        students.forEach((student, index) => {
+        const sortedStudents = [...students].sort(
+    (studentA, studentB) => {
+        const numberCompare =
+            Number(studentA.attendanceNo) -
+            Number(studentB.attendanceNo);
+
+        if (numberCompare !== 0) {
+            return numberCompare;
+        }
+
+        return studentA.name.localeCompare(
+            studentB.name,
+            "ko-KR"
+        );
+    }
+);
+
+sortedStudents.forEach(student => {
             const row =
                 document.createElement("tr");
 
             const numberCell =
                 document.createElement("td");
 
-            numberCell.textContent = index + 1;
+            numberCell.textContent =
+                student.attendanceNo;
 
             const nameCell =
                 document.createElement("td");
