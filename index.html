@@ -1913,18 +1913,21 @@ const ROOM_NUMBER_BY_ID = {
         // A호실 · 남학생 3명
         {
             id: "M01",
+            attendanceNo: 1,
             name: "김건희",
             gender: "남",
             assignedRoomId: "roomA"
         },
         {
             id: "M02",
+            attendanceNo: 2,
             name: "김민규",
             gender: "남",
             assignedRoomId: "roomA"
         },
         {
-            id: "M03",
+            id: "M07",
+            attendanceNo: 7,
             name: "서범석",
             gender: "남",
             assignedRoomId: "roomA"
@@ -1932,25 +1935,29 @@ const ROOM_NUMBER_BY_ID = {
 
         // B호실 · 남학생 4명
         {
-            id: "M04",
+            id: "M06",
+            attendanceNo: 6,
             name: "박연준",
             gender: "남",
             assignedRoomId: "roomB"
         },
         {
-            id: "M05",
+            id: "M04",
+            attendanceNo: 4,
             name: "김시현",
             gender: "남",
             assignedRoomId: "roomB"
         },
         {
-            id: "M06",
+            id: "M08",
+            attendanceNo: 8,
             name: "정민찬",
             gender: "남",
             assignedRoomId: "roomB"
         },
         {
-            id: "M07",
+            id: "M10",
+            attendanceNo: 10,
             name: "최윤수",
             gender: "남",
             assignedRoomId: "roomB"
@@ -1958,25 +1965,29 @@ const ROOM_NUMBER_BY_ID = {
 
         // C호실 · 남학생 4명
         {
-            id: "M08",
+            id: "M05",
+            attendanceNo: 5,
             name: "김차율",
             gender: "남",
             assignedRoomId: "roomC"
         },
         {
-            id: "M09",
+            id: "M03",
+            attendanceNo: 3,
             name: "김상윤",
             gender: "남",
             assignedRoomId: "roomC"
         },
         {
-            id: "M10",
+            id: "M09",
+            attendanceNo: 9,
             name: "정현승",
             gender: "남",
             assignedRoomId: "roomC"
         },
         {
             id: "M11",
+            attendanceNo: 11,
             name: "홍주원",
             gender: "남",
             assignedRoomId: "roomC"
@@ -1985,24 +1996,28 @@ const ROOM_NUMBER_BY_ID = {
         // D호실 · 여학생 4명
         {
             id: "F01",
+            attendanceNo: 12,
             name: "곽은설",
             gender: "여",
             assignedRoomId: "roomD"
         },
         {
             id: "F02",
+            attendanceNo: 17,
             name: "이화유",
             gender: "여",
             assignedRoomId: "roomD"
         },
         {
             id: "F03",
+            attendanceNo: 13,
             name: "김지원",
             gender: "여",
             assignedRoomId: "roomD"
         },
         {
             id: "F04",
+            attendanceNo: 20,
             name: "홍순영",
             gender: "여",
             assignedRoomId: "roomD"
@@ -2011,24 +2026,28 @@ const ROOM_NUMBER_BY_ID = {
         // E호실 · 여학생 4명
         {
             id: "F05",
+            attendanceNo: 14,
             name: "박규리",
             gender: "여",
             assignedRoomId: "roomE"
         },
         {
             id: "F06",
+            attendanceNo: 18,
             name: "조윤아",
             gender: "여",
             assignedRoomId: "roomE"
         },
         {
             id: "F07",
+            attendanceNo: 15,
             name: "이예서",
             gender: "여",
             assignedRoomId: "roomE"
         },
         {
             id: "F08",
+            attendanceNo: 16,
             name: "이윤지",
             gender: "여",
             assignedRoomId: "roomE"
@@ -2062,14 +2081,38 @@ let toastTimer = null;
     }
 
     function normalizeStudents(list) {
-        return list.map(student => ({
+    return list.map(student => {
+        const defaultStudent =
+            DEFAULT_STUDENTS.find(
+                item => item.id === student.id
+            );
+
+        return {
             ...student,
-            assignedRoomId: student.assignedRoomId || "",
-            hasDrawn: Boolean(student.hasDrawn),
-            selectedCardToken: student.selectedCardToken || "",
-            drawnAt: student.drawnAt || ""
-        }));
-    }
+
+            /*
+             * 기존 localStorage 데이터에 출석번호가 없어도
+             * DEFAULT_STUDENTS의 번호를 자동으로 적용합니다.
+             */
+            attendanceNo:
+                Number(student.attendanceNo) ||
+                Number(defaultStudent?.attendanceNo) ||
+                9999,
+
+            assignedRoomId:
+                student.assignedRoomId || "",
+
+            hasDrawn:
+                Boolean(student.hasDrawn),
+
+            selectedCardToken:
+                student.selectedCardToken || "",
+
+            drawnAt:
+                student.drawnAt || ""
+        };
+    });
+}
 
     function isValidSavedData(savedRooms, savedStudents) {
         if (
@@ -2240,9 +2283,15 @@ rooms = rooms.map(room => ({
 
         ["남", "여"].forEach(gender => {
             const groupStudents =
-                students.filter(
-                    student => student.gender === gender
-                );
+    students
+        .filter(
+            student => student.gender === gender
+        )
+        .sort(
+            (studentA, studentB) =>
+                studentA.attendanceNo -
+                studentB.attendanceNo
+        );
 
             const group =
                 document.createElement("optgroup");
@@ -2259,9 +2308,9 @@ rooms = rooms.map(room => ({
                 option.value = student.id;
 
                 option.textContent =
-                    student.hasDrawn
-                        ? `✅ ${student.name} · 완료`
-                        : student.name;
+    student.hasDrawn
+        ? `✅ ${student.attendanceNo}번 ${student.name} · 완료`
+        : `${student.attendanceNo}번 ${student.name}`;
 
                 group.appendChild(option);
             });
